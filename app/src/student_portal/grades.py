@@ -8,22 +8,16 @@ from student_portal.exceptions import InvalidGradeError
 MIN_SCORE = 0
 MAX_SCORE = 100
 ECTS_LETTERS = ("A", "B", "C", "D", "E", "Fx")
+ECTS_SCALE = ((90, "A"), (82, "B"), (75, "C"), (67, "D"), (60, "E"))
 
 
 def ects_grade(points: int) -> str:
     """Переводить бали (0–100) у літеру шкали ECTS (вимога Р-05)."""
-    if points < MIN_SCORE or points > MAX_SCORE:
+    if not MIN_SCORE <= points <= MAX_SCORE:
         raise InvalidGradeError(f"бали мають бути від {MIN_SCORE} до {MAX_SCORE}")
-    if points >= 90:
-        return "A"
-    if points >= 82:
-        return "B"
-    if points >= 75:
-        return "C"
-    if points >= 67:
-        return "D"
-    if points >= 60:
-        return "E"
+    for threshold, letter in ECTS_SCALE:
+        if points > threshold:
+            return letter
     return "Fx"
 
 
