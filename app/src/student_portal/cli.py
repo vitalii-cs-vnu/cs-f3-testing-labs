@@ -7,7 +7,13 @@ from student_portal.exceptions import PortalError, StorageError
 from student_portal.grades import Grade
 from student_portal.group import Group
 from student_portal.people import Student
-from student_portal.report import course_report, export_csv, export_pdf, pass_rate
+from student_portal.report import (
+    course_report,
+    export_csv,
+    export_pdf,
+    pass_rate,
+    send_report,
+)
 from student_portal.storage import load_group, save_group
 
 DATA_FILE = Path("data/group.json")
@@ -66,6 +72,8 @@ def run(group: Group) -> None:
                     print(f"Відомість: {path}, зараховано {pass_rate(rows):.0f} %")
                     if input("Зберегти також у PDF? (т/н) ").strip() == "т":
                         export_pdf(path)
+                    if to := input("Надіслати на email (Enter — пропустити): "):
+                        send_report(path, to)
                 case "0":
                     return
                 case _:

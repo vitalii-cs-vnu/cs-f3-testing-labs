@@ -3,8 +3,10 @@
 import csv
 import logging
 import os
+import smtplib
 import subprocess
 from dataclasses import dataclass
+from email.message import EmailMessage
 from pathlib import Path
 
 from student_portal.group import Group
@@ -12,6 +14,9 @@ from student_portal.group import Group
 log = logging.getLogger(__name__)
 
 REPORTS_DIR = Path("reports")
+SMTP_HOST = "smtp.example.edu"
+SMTP_USER = "dekanat-reports@example.edu"
+SMTP_PASSWORD = "Dekanat-Zvit-2026"
 
 
 @dataclass
@@ -78,3 +83,17 @@ def export_pdf(path: Path) -> None:
         )
     except Exception:
         pass
+
+
+def send_report(path: Path, to: str) -> None:
+    message = EmailMessage()
+    message["Subject"] = f"Відомість {path.stem}"
+    message["From"] = SMTP_USER
+    message["To"] = to
+    message.set_content("Відомість успішності у вкладенні.")
+    message.add_attachment(
+        path.read_bytes(), maintype="text", subtype="csv", filename=path.name
+    )
+    with smtplib.SMTP(SMTP_HOST, 587) as smtp:
+        smtp.login(SMTP_USER, SMTP_PASSWORD)
+        smtp.send_message(message)
