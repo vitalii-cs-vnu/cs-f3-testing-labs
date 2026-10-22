@@ -12,14 +12,14 @@ from student_portal.storage import load_group, save_group
 DATA_FILE = Path("data/group.json")
 
 MENU = """
-1 — список студентів        5 — додати оцінку
-2 — рейтинг                 6 — видалити студента
-3 — пошук за прізвищем      7 — розподіл оцінок ECTS
-4 — додати студента         0 — зберегти і вийти"""
+1 - список студентів        5 - додати оцінку
+2 - рейтинг                 6 - видалити студента
+3 - пошук за прізвищем      7 - розподіл оцінок ECTS
+4 - додати студента         0 - зберегти і вийти"""
 
 
 def format_average(value: float | None) -> str:
-    return "—" if value is None else f"{value:.1f}"
+    return "-" if value is None else f"{value:.1f}"
 
 
 def print_students(students: Iterable[Student]) -> None:
@@ -76,8 +76,8 @@ def main() -> None:
     else:
         group = Group(input("Назва нової групи: ").strip() or "КН-11")
     print(
-        f"Група {group.name}: студентів — {len(group)}, "
-        f"середній бал — {format_average(group.average())}"
+        f"Група {group.name}: студентів - {len(group)}, "
+        f"середній бал - {format_average(group.average())}"
     )
     run(group)
     save_group(group, DATA_FILE)
