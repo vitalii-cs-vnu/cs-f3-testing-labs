@@ -19,3 +19,11 @@ class StudentNotFoundError(PortalError, LookupError):
 
 class StorageError(PortalError):
     """Помилка читання або запису файлу даних."""
+
+
+class CorrectionPeriodError(PortalError):
+    """Строк виправлення оцінки минув."""
+
+
+class InvalidTransitionError(PortalError):
+    """Подія неможлива для поточного статусу студента."""

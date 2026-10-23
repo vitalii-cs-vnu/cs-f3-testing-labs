@@ -8,7 +8,8 @@ from typing import Any
 from student_portal.exceptions import StorageError
 from student_portal.grades import Grade
 from student_portal.group import Group
-from student_portal.people import Student
+from student_portal.people import Funding, Student
+from student_portal.status import Status
 
 
 def group_to_dict(group: Group) -> dict[str, Any]:
@@ -20,6 +21,8 @@ def group_to_dict(group: Group) -> dict[str, Any]:
                 "first_name": s.first_name,
                 "last_name": s.last_name,
                 "email": s.email,
+                "funding": s.funding,
+                "status": s.status,
                 "grades": [
                     {
                         "course": g.course,
@@ -48,6 +51,8 @@ def group_from_dict(data: dict[str, Any]) -> Group:
                 item["last_name"],
                 grades,
                 item.get("email"),
+                Funding(item.get("funding", Funding.BUDGET)),
+                Status(item.get("status", Status.ACTIVE)),
             )
         )
     return group

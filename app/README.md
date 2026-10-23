@@ -22,7 +22,10 @@ app/
 ├── data/group.json            # приклад даних групи
 ├── src/student_portal/
 │   ├── grades.py              # Grade, шкала ECTS (вимога Р-05)
+│   ├── corrections.py         # виправлення оцінки (вимога Р-08)
 │   ├── people.py              # Person, Student, Teacher
+│   ├── status.py              # статус студента (вимога Р-18)
+│   ├── scholarship.py         # академічна стипендія (вимога Р-17)
 │   ├── group.py               # Group: пошук, рейтинг, статистика
 │   ├── storage.py             # збереження у JSON
 │   ├── exceptions.py          # власні винятки

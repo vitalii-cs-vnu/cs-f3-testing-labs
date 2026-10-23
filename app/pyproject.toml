@@ -1,6 +1,6 @@
 [project]
 name = "student-portal"
-version = "0.2.0"
+version = "0.3.0"
 description = "Система управління студентами - навчальний застосунок курсу «Тестування та супровід ПЗ»"
 readme = "README.md"
 authors = [
