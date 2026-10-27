@@ -1,6 +1,6 @@
 [project]
 name = "student-portal"
-version = "0.4.0"
+version = "0.5.0"
 description = "Система управління студентами - навчальний застосунок курсу «Тестування та супровід ПЗ»"
 readme = "README.md"
 authors = [
@@ -20,6 +20,8 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "pytest>=9.0",
+    "pytest-cov>=7.1.0",
+    "pytest-mock>=3.17.0",
     "ruff>=0.17.1",
 ]
 
