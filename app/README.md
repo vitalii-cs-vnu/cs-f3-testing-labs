@@ -11,6 +11,7 @@
 ```bash
 cd app
 uv run student-portal      # консольний застосунок
+uv run student-portal-dean # консоль деканату: імпорт студентів, статуси, стипендії
 uv run pytest              # тести
 uv run ruff check .        # лінтер
 ```
@@ -20,6 +21,7 @@ uv run ruff check .        # лінтер
 ```
 app/
 ├── data/group.json            # приклад даних групи
+├── data/students-import.csv   # приклад файлу імпорту студентів (вимога Р-19)
 ├── src/student_portal/
 │   ├── grades.py              # Grade, шкала ECTS (вимога Р-05)
 │   ├── corrections.py         # виправлення оцінки (вимога Р-08)
@@ -28,7 +30,9 @@ app/
 │   ├── scholarship.py         # академічна стипендія (вимога Р-17)
 │   ├── group.py               # Group: пошук, рейтинг, статистика
 │   ├── storage.py             # збереження у JSON
+│   ├── importer.py            # імпорт студентів із CSV (вимога Р-19)
 │   ├── exceptions.py          # власні винятки
-│   └── cli.py                 # консольне меню
+│   ├── cli.py                 # консольне меню
+│   └── dean.py                # консоль деканату
 └── tests/                     # тести pytest
 ```

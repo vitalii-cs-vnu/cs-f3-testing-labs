@@ -1,6 +1,6 @@
 [project]
 name = "student-portal"
-version = "0.3.0"
+version = "0.4.0"
 description = "Система управління студентами - навчальний застосунок курсу «Тестування та супровід ПЗ»"
 readme = "README.md"
 authors = [
@@ -11,6 +11,7 @@ dependencies = []
 
 [project.scripts]
 student-portal = "student_portal:main"
+student-portal-dean = "student_portal.dean:main"
 
 [build-system]
 requires = ["uv_build>=0.11.21,<0.12.0"]

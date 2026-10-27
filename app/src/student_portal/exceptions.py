@@ -27,3 +27,7 @@ class CorrectionPeriodError(PortalError):
 
 class InvalidTransitionError(PortalError):
     """Подія неможлива для поточного статусу студента."""
+
+
+class ImportFormatError(PortalError, ValueError):
+    """Файл імпорту студентів має неправильний формат."""
