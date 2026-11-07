@@ -1,8 +1,11 @@
-"""REST API системи управління студентами (вимога Р-23)."""
+"""REST API системи управління студентами (вимоги Р-23, Р-27)."""
 
 import asyncio
+import csv
+import io
 import os
 import random
+import tempfile
 from contextlib import suppress
 from datetime import date
 from pathlib import Path
@@ -16,6 +19,7 @@ from fastapi import (
     Query,
     Request,
     Response,
+    UploadFile,
     status,
 )
 from fastapi.responses import FileResponse
@@ -25,6 +29,7 @@ from pydantic import BaseModel, EmailStr, Field
 from student_portal.exceptions import PortalError, StudentNotFoundError
 from student_portal.grades import Grade
 from student_portal.group import Group
+from student_portal.importer import import_students
 from student_portal.people import Student
 from student_portal.storage import load_group
 
@@ -42,6 +47,7 @@ ERRORS = {
     403: {"description": "Ролі бракує прав"},
 }
 NOT_FOUND = {404: {"description": "Студента не знайдено"}}
+BAD_FILE = {400: {"description": "Файл не відповідає формату Р-19"}}
 CONFLICT = {409: {"description": "Конфлікт з наявними даними"}}
 
 
@@ -55,6 +61,11 @@ class StudentOut(StudentIn):
     id: int
     group: str
     average: float | None
+    rank: int | None
+
+
+class ImportResult(BaseModel):
+    imported: int
 
 
 class GradeIn(BaseModel):
@@ -76,7 +87,11 @@ class Me(BaseModel):
 
 
 def create_app(group: Group) -> FastAPI:
-    app = FastAPI(title="Система управління студентами", version="0.8.0")
+    app = FastAPI(
+        title="Система управління студентами",
+        version="0.10.0",
+        debug=os.environ.get("PORTAL_DEBUG", "1") == "1",
+    )
     app.mount("/static", StaticFiles(directory=WEB), name="static")
 
     @app.middleware("http")
@@ -117,6 +132,12 @@ def create_app(group: Group) -> FastAPI:
         if any(s.email and s.email.casefold() == email.casefold() for s in group):
             raise HTTPException(status.HTTP_409_CONFLICT, "email уже використовується")
 
+    def rank(s: Student) -> int | None:
+        average = s.average()
+        if average is None:
+            return None
+        return 1 + sum(1 for other in group if (other.average() or 0) > average)
+
     def out(s: Student) -> StudentOut:
         return StudentOut(
             id=s.id,
@@ -125,6 +146,7 @@ def create_app(group: Group) -> FastAPI:
             email=s.email or "",
             group=group.name,
             average=s.average(),
+            rank=rank(s),
         )
 
     def grade_out(g: Grade) -> GradeOut:
@@ -159,6 +181,49 @@ def create_app(group: Group) -> FastAPI:
         group.add(student)
         response.headers["Location"] = f"/api/students/{student.id}"
         return out(student)
+
+    @app.post("/api/students/import", status_code=201, responses=ERRORS | BAD_FILE)
+    def import_csv(
+        file: UploadFile, _: Annotated[str, Depends(require("admin"))]
+    ) -> ImportResult:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "import.csv"
+            path.write_bytes(file.file.read())
+            try:
+                count = import_students(group, path)
+            except PortalError as error:
+                raise HTTPException(status.HTTP_400_BAD_REQUEST, str(error)) from None
+        return ImportResult(imported=count)
+
+    @app.get(
+        "/api/export/students.csv",
+        response_class=Response,
+        responses=ERRORS | {200: {"content": {"text/csv": {}}}},
+    )
+    def export_csv(
+        _: Annotated[str, Depends(require("admin", "teacher"))],
+    ) -> Response:
+        buffer = io.StringIO()
+        writer = csv.writer(buffer, delimiter=";", lineterminator="\r\n")
+        writer.writerow(["id", "last_name", "first_name", "email", "average", "rank"])
+        for s in group.ranking():
+            row = out(s)
+            average = "" if row.average is None else f"{row.average:.1f}"
+            writer.writerow(
+                [
+                    row.id,
+                    row.last_name,
+                    row.first_name,
+                    row.email,
+                    average.replace(".", ","),
+                    row.rank or "",
+                ]
+            )
+        return Response(
+            "\ufeff" + buffer.getvalue(),
+            media_type="text/csv; charset=utf-8",
+            headers={"Content-Disposition": 'attachment; filename="students.csv"'},
+        )
 
     @app.get("/api/students/{student_id}", responses=ERRORS | NOT_FOUND)
     def get_student(

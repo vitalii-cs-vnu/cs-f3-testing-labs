@@ -24,11 +24,12 @@
     <h2>Студенти групи</h2>
     <label>Пошук за прізвищем <input id="search" type="search"></label>
     <table>
-      <thead><tr><th>ПІБ</th><th>Email</th><th>Середній бал</th><th><span class="visually-hidden">Дії</span></th></tr></thead>
+      <thead><tr><th>ПІБ</th><th>Email</th><th id="sort-average" class="sortable">Середній бал</th><th><span class="visually-hidden">Дії</span></th></tr></thead>
       <tbody id="students"></tbody>
     </table>
     <p id="empty" hidden>Нікого не знайдено</p>
     <p id="total"></p>
+    <p><button type="button" id="export" hidden>Експорт CSV</button></p>
 
     <form id="add-form" hidden>
       <h3>Новий студент</h3>
@@ -36,6 +37,12 @@
       <label>Ім’я <input name="first_name" required></label>
       <label>Email <input name="email" type="email" required></label>
       <button type="submit">Додати студента</button>
+    </form>
+
+    <form id="import-form" hidden>
+      <h3>Імпорт з CSV</h3>
+      <input type="file" name="file" accept=".csv,text/csv" required>
+      <button type="submit">Імпортувати</button>
     </form>
   </section>
 

@@ -4,3 +4,7 @@ th, td { border: 1px solid #ccc; padding: 0.3rem 0.6rem; text-align: left; }
 label { display: inline-block; margin: 0.3rem 1rem 0.3rem 0; }
 #error { color: #b00020; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+th.sortable { cursor: pointer; }
+th.sortable::after { content: " \2195"; color: #666; }
+th[data-order="asc"]::after { content: " \2191"; }
+th[data-order="desc"]::after { content: " \2193"; }

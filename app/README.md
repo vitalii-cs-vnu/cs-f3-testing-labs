@@ -23,6 +23,7 @@ uv run ruff check .        # лінтер
 app/
 ├── data/group.json            # приклад даних групи
 ├── data/students-import.csv   # приклад файлу імпорту студентів (вимога Р-19)
+├── data/stream.json           # потік з 300 студентів для тестів продуктивності (Р-27)
 ├── src/student_portal/
 │   ├── grades.py              # Grade, шкала ECTS (вимога Р-05)
 │   ├── corrections.py         # виправлення оцінки (вимога Р-08)
@@ -35,7 +36,7 @@ app/
 │   ├── reminders.py           # нагадування про заборгованість (вимога Р-20)
 │   ├── course_report.py       # звіт про дисципліну (вимога Р-26)
 │   ├── repository.py          # зберігання в PostgreSQL (вимога Р-22)
-│   ├── api.py                 # REST API (вимога Р-23)
+│   ├── api.py                 # REST API (вимоги Р-23, Р-27)
 │   ├── dean_client.py         # клієнт сервісу деканату (вимога Р-24)
 │   ├── web/                   # вебінтерфейс: index.html, app.js, style.css (вимога Р-25)
 │   ├── exceptions.py          # власні винятки
@@ -83,6 +84,18 @@ curl -H "Authorization: Bearer teacher-token" http://127.0.0.1:8000/api/students
 ```bash
 PORTAL_MAX_DELAY=0.5 uv run student-portal-api
 ```
+
+## Обмін даними з деканатом
+
+Вимога Р-27: у відповідях API про студентів є поле `rank` - місце в рейтингу групи за середнім балом. `GET /api/export/students.csv` (адміністратор, викладач) повертає список групи у CSV для табличних процесорів, `POST /api/students/import` (адміністратор) приймає файл CSV у форматі Р-19 (поле `file`, `multipart/form-data`). У вебінтерфейсі - кнопка «Експорт CSV», форма «Імпорт з CSV» і сортування списку кліком на заголовок «Середній бал».
+
+Для тестів продуктивності є файл `data/stream.json` - потік з 300 студентів:
+
+```bash
+PORTAL_DATA=data/stream.json uv run student-portal-api
+```
+
+Змінна `PORTAL_DEBUG=1` вмикає режим налагодження FastAPI: відповідь 500 містить трасування стеку. За замовчуванням режим вимкнено.
 
 ## Звіт про дисципліну
 

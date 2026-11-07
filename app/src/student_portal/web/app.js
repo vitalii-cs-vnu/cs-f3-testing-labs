@@ -1,9 +1,10 @@
 "use strict";
-// Вебінтерфейс системи управління студентами (вимога Р-25)
+// Вебінтерфейс системи управління студентами (вимоги Р-25, Р-27)
 
 const ROLES = { admin: "Адміністратор", teacher: "Викладач" };
 const $ = (id) => document.getElementById(id);
 let students = [];
+let order = null; // сортування за середнім балом: null, "desc", "asc"
 
 function token() {
   return sessionStorage.getItem("token");
@@ -50,9 +51,22 @@ function cell(text) {
   return td;
 }
 
+// Студенти без оцінок - наприкінці за будь-якого напряму
+function byAverage(direction) {
+  return (a, b) => {
+    if (a.average === null || b.average === null) {
+      return (a.average === null) - (b.average === null);
+    }
+    return direction * (a.average - b.average);
+  };
+}
+
 function renderStudents() {
   const query = $("search").value.trim();
   const shown = students.filter((s) => s.last_name.includes(query));
+  if (order) {
+    shown.sort(byAverage(order === "asc" ? 1 : -1));
+  }
   const rows = shown.map((s) => {
     const tr = document.createElement("tr");
     const name = document.createElement("td");
@@ -97,7 +111,10 @@ async function loadStudents() {
 
 async function openList() {
   show("list-view");
-  $("add-form").hidden = sessionStorage.getItem("role") !== "admin";
+  const role = sessionStorage.getItem("role");
+  $("add-form").hidden = role !== "admin";
+  $("import-form").hidden = role !== "admin";
+  $("export").hidden = role !== "admin" && role !== "teacher";
   if (students.length === 0) {
     await loadStudents();
   } else {
@@ -142,6 +159,46 @@ async function removeStudent(s) {
   say("Студента видалено");
 }
 
+function toggleOrder() {
+  order = order === "desc" ? "asc" : "desc";
+  $("sort-average").dataset.order = order;
+  renderStudents();
+}
+
+async function exportCsv() {
+  const response = await fetch("/api/export/students.csv", {
+    headers: { Authorization: `Bearer ${token()}` },
+  });
+  if (response.status !== 200) {
+    fail("Помилка: не вдалося експортувати список");
+    return;
+  }
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(await response.blob());
+  link.download = "students.csv";
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+async function importCsv(form) {
+  const response = await fetch("/api/students/import", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token()}` },
+    body: new FormData(form),
+  });
+  if (response.status === 201) {
+    const { imported } = await response.json();
+    form.reset();
+    await loadStudents();
+    say(`Імпортовано студентів: ${imported}`);
+  } else if (response.status === 400) {
+    const { detail } = await response.json();
+    fail(`Помилка імпорту: ${detail}`);
+  } else {
+    fail("Помилка: не вдалося імпортувати файл");
+  }
+}
+
 async function login(value) {
   sessionStorage.setItem("token", value);
   const { status, data } = await api("GET", "/api/me");
@@ -183,6 +240,13 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   $("search").addEventListener("input", renderStudents);
+  $("sort-average").addEventListener("click", toggleOrder);
+  $("export").addEventListener("click", exportCsv);
+
+  $("import-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    importCsv(event.target);
+  });
 
   $("add-form").addEventListener("submit", async (event) => {
     event.preventDefault();
