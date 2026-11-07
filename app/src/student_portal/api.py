@@ -89,7 +89,7 @@ class Me(BaseModel):
 def create_app(group: Group) -> FastAPI:
     app = FastAPI(
         title="Система управління студентами",
-        version="0.10.0",
+        version="0.11.0",
         debug=os.environ.get("PORTAL_DEBUG", "1") == "1",
     )
     app.mount("/static", StaticFiles(directory=WEB), name="static")

@@ -18,6 +18,7 @@ from student_portal.reminders import (
 from student_portal.scholarship import scholarship
 from student_portal.status import Event
 from student_portal.storage import load_group, save_group
+from student_portal.transcript import transcript
 
 MENU = """
 1 - список студентів (статус, фінансування, email)
@@ -27,6 +28,7 @@ MENU = """
 5 - виправити оцінку
 6 - нагадування боржникам
 7 - звіт про дисципліну
+8 - академічна довідка
 0 - зберегти і вийти"""
 
 EVENTS = list(Event)
@@ -99,6 +101,11 @@ def show_course_report(group: Group) -> None:
     print(format_report(course_report(group, input("Дисципліна: ").strip())))
 
 
+def show_transcript(group: Group) -> None:
+    student = group.get(int(input("ID студента: ")))
+    print(transcript(student, group.name), end="")
+
+
 ACTIONS = {
     "1": list_students,
     "2": import_from_csv,
@@ -107,6 +114,7 @@ ACTIONS = {
     "5": correct,
     "6": remind_debtors,
     "7": show_course_report,
+    "8": show_transcript,
 }
 
 
