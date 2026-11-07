@@ -11,7 +11,7 @@
 ```bash
 cd app
 uv run student-portal      # консольний застосунок
-uv run student-portal-dean # консоль деканату: імпорт студентів, статуси, стипендії, нагадування
+uv run student-portal-dean # консоль деканату: імпорт студентів, статуси, стипендії, нагадування, звіти
 uv run student-portal-api  # вебінтерфейс і REST API на http://127.0.0.1:8000 (документація API: /docs)
 uv run pytest              # тести
 uv run ruff check .        # лінтер
@@ -33,6 +33,7 @@ app/
 │   ├── storage.py             # збереження у JSON
 │   ├── importer.py            # імпорт студентів із CSV (вимога Р-19)
 │   ├── reminders.py           # нагадування про заборгованість (вимога Р-20)
+│   ├── course_report.py       # звіт про дисципліну (вимога Р-26)
 │   ├── repository.py          # зберігання в PostgreSQL (вимога Р-22)
 │   ├── api.py                 # REST API (вимога Р-23)
 │   ├── dean_client.py         # клієнт сервісу деканату (вимога Р-24)
@@ -82,3 +83,24 @@ curl -H "Authorization: Bearer teacher-token" http://127.0.0.1:8000/api/students
 ```bash
 PORTAL_MAX_DELAY=0.5 uv run student-portal-api
 ```
+
+## Звіт про дисципліну
+
+Пункт 7 консолі деканату показує звіт про одну дисципліну групи (вимога Р-26, модуль `course_report.py`): кількість оцінок, середній бал, частку тих, хто склав, розподіл за літерами ECTS і боржників.
+
+## Рівні тестів
+
+Тести позначено за тим, що їм потрібно для запуску:
+
+| Позначка | Що потрібно | Приклад |
+| --- | --- | --- |
+| без позначки | лише Python | `tests/test_grades.py`, `tests/test_api.py` |
+| `integration` | Docker (PostgreSQL у Testcontainers) | `tests/test_repository.py` |
+| `e2e` | браузер Playwright | тести вебінтерфейсу |
+
+```bash
+uv run pytest -m "not integration and not e2e"   # швидкі тести
+uv run pytest -m integration                      # з Docker
+```
+
+Позначки зареєстровано в `tests/conftest.py`; ключ `--strict-markers` перетворює помилку в назві позначки на помилку запуску. Без Docker інтеграційні тести пропускаються, але в CI (змінна середовища `CI`) відсутність Docker - помилка: пропущений тест не повинен робити конвеєр зеленим.

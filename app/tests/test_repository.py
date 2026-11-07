@@ -1,5 +1,6 @@
 """Інтеграційні тести StudentRepository на PostgreSQL у контейнері (потрібен Docker)."""
 
+import os
 from datetime import date
 
 import psycopg
@@ -11,6 +12,8 @@ from student_portal.people import Funding, Student
 from student_portal.repository import StudentRepository
 from student_portal.status import Status
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.fixture(scope="module")
 def database_url():
@@ -20,6 +23,8 @@ def database_url():
     try:
         container = PostgresContainer("postgres:18-alpine", driver=None).start()
     except docker.errors.DockerException as error:
+        if os.environ.get("CI"):
+            raise  # у CI пропущений інтеграційний тест приховав би відмову
         pytest.skip(f"Docker недоступний: {error}")
     yield container.get_connection_url()
     container.stop()

@@ -5,6 +5,7 @@ from pathlib import Path
 
 from student_portal.cli import DATA_FILE, format_average
 from student_portal.corrections import correct_grade
+from student_portal.course_report import course_report, format_report
 from student_portal.exceptions import PortalError, StorageError
 from student_portal.group import Group
 from student_portal.importer import import_students
@@ -25,6 +26,7 @@ MENU = """
 4 - стипендії групи
 5 - виправити оцінку
 6 - нагадування боржникам
+7 - звіт про дисципліну
 0 - зберегти і вийти"""
 
 EVENTS = list(Event)
@@ -91,6 +93,12 @@ def remind_debtors(group: Group) -> None:
         print(f"Не вдалося надіслати: {email}")
 
 
+def show_course_report(group: Group) -> None:
+    courses = sorted(group.courses())
+    print(f"Дисципліни: {', '.join(courses)}")
+    print(format_report(course_report(group, input("Дисципліна: ").strip())))
+
+
 ACTIONS = {
     "1": list_students,
     "2": import_from_csv,
@@ -98,6 +106,7 @@ ACTIONS = {
     "4": show_scholarships,
     "5": correct,
     "6": remind_debtors,
+    "7": show_course_report,
 }
 
 
